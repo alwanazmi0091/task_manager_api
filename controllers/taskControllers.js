@@ -3,9 +3,36 @@ import Tasks from "../models/taskModels.js";
 const getTasks = async (req, res) => {
   const userId = req.session.userId;
 
-  const result = await Tasks.get(userId);
+  if (Object.keys(req.query).length === 0) {
+    const result = await Tasks.get(userId);
+    return res.status(200).json(result);
+  }
 
-  return res.status(200).json(result);
+  if (
+    Object.keys(req.query).length !== 1 ||
+    Object.keys(req.query)[0] !== "search"
+  ) {
+    return res.status(400).json({
+      message: "Invalid fields",
+    });
+  }
+
+  if (typeof req.query.search !== "string") {
+    return res.status(400).json({
+      message: "Query must be string",
+    });
+  }
+
+  const normalizedQuery = req.query.search.trim();
+
+  if (normalizedQuery === "") {
+    return res.status(400).json({
+      message: "Query can't be empty",
+    });
+  }
+
+  const result = await Tasks.get(userId, normalizedQuery);
+  return res.status(200).json(result)
 };
 
 const getTaskById = async (req, res) => {

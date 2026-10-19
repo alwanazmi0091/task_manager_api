@@ -14,14 +14,22 @@ class Tasks {
     return result[0] ?? null;
   }
 
-  static async get(userId) {
+  static async get(userId, query) {
+    const likeClause = query ? "AND task_content LIKE ?" : "";
+
+    const params = [userId];
+
+    if (query) {
+      params.push(`%${query}%`);
+    }
+
     const [result] = await pool.execute(
       `
         SELECT task_id, task_content
         FROM tasks
-        WHERE task_owner = ?
+        WHERE task_owner = ? ${likeClause}
       `,
-      [userId],
+      params,
     );
 
     return result;
